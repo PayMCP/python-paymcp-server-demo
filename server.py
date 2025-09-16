@@ -20,7 +20,7 @@ if env == "development":
 
 
 
-mcp = FastMCP("Image generator", capabilities = { "elicitation": {} }) 
+mcp = FastMCP("Image generator") 
 
 
 PayMCP(mcp, providers={"walleot": {"apiKey": os.getenv("WALLEOT_API_KEY")}}, payment_flow=PaymentFlow.TWO_STEP) 
