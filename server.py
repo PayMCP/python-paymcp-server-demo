@@ -139,8 +139,9 @@ if __name__ == "__main__":
     # Use --http flag or MCP_TRANSPORT=http for HTTP server
     if "--http" in sys.argv or os.getenv("MCP_TRANSPORT") == "http":
         # For MCP Inspector or HTTP clients
-        logger.info("Starting with HTTP transport on port 8000")
-        mcp.run(transport="streamable-http")
+        port = int(os.getenv("UVICORN_PORT", "8001"))
+        logger.info(f"Starting with HTTP transport on port {port}")
+        mcp.run(transport="streamable-http", port=port)
     else:
         # For Claude Desktop (stdio)
         logger.info("Starting with stdio transport")

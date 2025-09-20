@@ -9,6 +9,9 @@ dependencies = [
     "pillow>=11.2.1",
     "python-dotenv>=1.1.0",
     "requests>=2.32.4",
-    "paymcp>=0.1.0",
+    "paymcp @ file:///app/paymcp",
     "openai>=1.97.1",
 ]
+
+[tool.setuptools]
+py-modules = ["server", "openai_client"]

@@ -371,16 +371,23 @@ wheels = [
 
 [[package]]
 name = "paymcp"
-version = "0.0.4"
-source = { registry = "https://pypi.org/simple" }
+version = "0.1.2"
+source = { directory = "../paymcp" }
 dependencies = [
     { name = "pydantic" },
     { name = "requests" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/0a/f3/270376d015c3d836a673d71ab46215f4603e0806753918ffea03d1a7a056/paymcp-0.0.4.tar.gz", hash = "sha256:21c752f778dc5a26cc45dc387041cad345aabd90f28170f08364bbbe8a6285f0", size = 9391, upload-time = "2025-07-17T16:35:05.467Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/8c/4b/9b2adbbd956c32f22222fffc476a799f4a8d6c34b07ab0a658640e726387/paymcp-0.0.4-py3-none-any.whl", hash = "sha256:cfdb8378a731fffe7ae295837d42b9c62eaf236c6001d81f82933a00f85a9c5a", size = 13524, upload-time = "2025-07-17T16:35:04.464Z" },
+
+[package.metadata]
+requires-dist = [
+    { name = "pydantic", specifier = ">=2.11.7" },
+    { name = "pywebview", marker = "extra == 'all'", specifier = ">=4.0" },
+    { name = "pywebview", marker = "extra == 'webview'", specifier = ">=4.0" },
+    { name = "redis", marker = "extra == 'all'", specifier = ">=5.0.0" },
+    { name = "redis", marker = "extra == 'redis'", specifier = ">=5.0.0" },
+    { name = "requests", specifier = ">=2.32.4" },
 ]
+provides-extras = ["redis", "webview", "all"]
 
 [[package]]
 name = "pillow"
@@ -644,7 +651,7 @@ dependencies = [
 requires-dist = [
     { name = "mcp", extras = ["cli"], specifier = ">=1.11.0" },
     { name = "openai", specifier = ">=1.97.1" },
-    { name = "paymcp", specifier = ">=0.0.4" },
+    { name = "paymcp", directory = "../paymcp" },
     { name = "pillow", specifier = ">=11.2.1" },
     { name = "python-dotenv", specifier = ">=1.1.0" },
     { name = "requests", specifier = ">=2.32.4" },

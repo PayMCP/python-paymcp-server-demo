@@ -16,37 +16,153 @@ The price is configured in code via `@price(0.2, "USD")` in `server.py`.
 
 ---
 
-## Install & Run (with **uv**)
+## Install & Run
 
-### Dev mode (opens Inspector automatically)
+### Local Development
 ```bash
-uv run mcp dev server.py
-```
-This starts the server and launches **MCP Inspector** automatically; connect and call the `generate` tool with a `prompt`.
+# Install dependencies
+uv sync
 
-### HTTP mode
-```bash
+# Run in HTTP mode (default port 8001)
+uv run server.py --http
+# Or with environment variable
+MCP_TRANSPORT=http uv run server.py
+
+# Custom port
+UVICORN_PORT=8000 MCP_TRANSPORT=http uv run server.py
+
+# Run in stdio mode (for Claude Desktop)
 uv run server.py
 ```
-Check the console for the `/mcp` URL and connect from your MCP client (or run Inspector separately e.g. with `npx @modelcontextprotocol/inspector@latest`).
 
-To install for MCP clients (e.g., Claude Desktop):
+### Using Docker
+The server is included in the PayMCP test suite Docker setup. See https://github.com/PayMCP/paymcp-test-suite for details.
+
+### MCP Inspector
 ```bash
-uv run mcp install server.py \
-  --with openai --with paymcp --with requests --with Pillow
+# Run the server in HTTP mode
+MCP_TRANSPORT=http uv run server.py
+
+# In another terminal, launch Inspector
+npx @modelcontextprotocol/inspector
+
+# Connect to http://localhost:8001/mcp
 ```
 
 ---
 
+## Project Structure
+
+- `server.py` - Main MCP server implementation
+- `openai_client.py` - OpenAI DALL-E integration
+- `pyproject.toml` - Project dependencies and configuration
+- `providers.json` - Payment provider configuration
+
+### Dependencies
+
+#### Using Local SDK (Development)
+The project uses local paymcp SDK by default (`file:../paymcp`):
+```bash
+# Edit pyproject.toml
+"paymcp @ file://../paymcp"  # Local development
+```
+
+#### Using Published Package
+To use the published PyPI package instead:
+```bash
+# Edit pyproject.toml
+"paymcp>=0.1.0"  # From PyPI
+
+# Then reinstall
+uv sync
+```
+
+#### Switching Between Local and Published
+```bash
+# Use local SDK
+sed -i 's/"paymcp.*"/"paymcp @ file:\/\/..\/paymcp"/' pyproject.toml
+uv sync
+
+# Use PyPI package
+sed -i 's/"paymcp.*"/"paymcp>=0.1.0"/' pyproject.toml
+uv sync
+```
+
+For Docker deployment, the path is automatically updated to `/app/paymcp`.
+
+---
+
 ## Configuration
-Set env vars before running:
+
+### Environment Variables
+Set environment variables before running:
 ```bash
 export OPENAI_API_KEY="sk-..."
-# choose one payment provider
-export WALLEOT_API_KEY="..."        # for Walleot
-# or
-export STRIPE_SECRET_KEY="sk_live_..."  # for Stripe (remember the minimum charge)
+
+# Payment providers (set at least one):
+export WALLEOT_API_KEY="wlt_sk_test_..."     # Walleot (recommended for testing)
+export STRIPE_SECRET_KEY="sk_test_..."       # Stripe
+export PAYPAL_CLIENT_ID="..."                # PayPal
+export PAYPAL_CLIENT_SECRET="..."            # PayPal secret
+export SQUARE_ACCESS_TOKEN="..."             # Square
+export SQUARE_LOCATION_ID="..."              # Square location
+
+# Provider selection
+export PAYMENT_PROVIDER="walleot"  # Options: walleot, stripe, paypal, square
+export PAYMENT_FLOW="TWO_STEP"     # Options: TWO_STEP, ONE_STEP
 ```
+
+### Provider Configuration (providers.json)
+The server uses `providers.json` to configure payment providers. Example:
+
+```json
+{
+  "default": "walleot",
+  "providers": {
+    "walleot": {
+      "type": "walleot",
+      "config": {
+        "api_key": "${WALLEOT_API_KEY}"
+      }
+    },
+    "stripe": {
+      "type": "stripe",
+      "config": {
+        "secret_key": "${STRIPE_SECRET_KEY}"
+      }
+    },
+    "paypal": {
+      "type": "paypal",
+      "config": {
+        "client_id": "${PAYPAL_CLIENT_ID}",
+        "client_secret": "${PAYPAL_CLIENT_SECRET}",
+        "mode": "sandbox"
+      }
+    },
+    "square": {
+      "type": "square",
+      "config": {
+        "access_token": "${SQUARE_ACCESS_TOKEN}",
+        "location_id": "${SQUARE_LOCATION_ID}",
+        "environment": "sandbox"
+      }
+    }
+  }
+}
+```
+
+### Provider Notes
+- **Walleot**: Best for testing, supports small amounts, unified API
+- **Stripe**: Has minimum charge requirements (~$2.00), great for production
+- **PayPal**: Supports PayPal and Venmo payments
+- **Square**: Good for in-person and online payments
+
+### Getting API Keys
+- **OpenAI**: https://platform.openai.com/api-keys
+- **Walleot**: https://walleot.com (Sign up for test API key)
+- **Stripe**: https://dashboard.stripe.com/test/apikeys
+- **PayPal**: https://developer.paypal.com/dashboard
+- **Square**: https://developer.squareup.com/apps
 
 ---
 
