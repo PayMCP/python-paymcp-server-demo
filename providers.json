@@ -1,0 +1,20 @@
+{
+  "providers": {
+    "stripe": {
+      "apiKey": "${STRIPE_SECRET_KEY}"
+    },
+    "paypal": {
+      "client_id": "${PAYPAL_CLIENT_ID}",
+      "client_secret": "${PAYPAL_CLIENT_SECRET}"
+    },
+    "square": {
+      "access_token": "${SQUARE_ACCESS_TOKEN}",
+      "location_id": "${SQUARE_LOCATION_ID}",
+      "sandbox": "${SQUARE_ENVIRONMENT:-sandbox}",
+      "api_version": "${SQUARE_API_VERSION:-2025-03-19}"
+    },
+    "walleot": {
+      "apiKey": "${WALLEOT_API_KEY}"
+    }
+  }
+}
