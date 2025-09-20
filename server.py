@@ -139,9 +139,19 @@ if __name__ == "__main__":
     # Use --http flag or MCP_TRANSPORT=http for HTTP server
     if "--http" in sys.argv or os.getenv("MCP_TRANSPORT") == "http":
         # For MCP Inspector or HTTP clients
-        port = int(os.getenv("UVICORN_PORT", "8001"))
-        logger.info(f"Starting with HTTP transport on port {port}")
-        mcp.run(transport="streamable-http", port=port)
+        port = int(os.getenv("UVICORN_PORT", "8000"))
+        host = os.getenv("UVICORN_HOST", "0.0.0.0")
+
+        logger.info(f"Starting with HTTP transport on {host}:{port}")
+        
+        # Note: MCP library always binds to 127.0.0.1:8000 internally
+        # Show warning only when running manually with a different port expectation
+        if port != 8000 and not os.path.exists("/.dockerenv"):
+            logger.warning(f"⚠️  Note: MCP library hardcodes to port 8000, ignoring UVICORN_PORT={port}")
+            logger.warning(f"To use port {port}, run a proxy: socat TCP-LISTEN:{port},fork,reuseaddr TCP:127.0.0.1:8000")
+            logger.warning("Or use the ./run-with-proxy.sh script for automatic port 8001 setup")
+        
+        mcp.run(transport="streamable-http")
     else:
         # For Claude Desktop (stdio)
         logger.info("Starting with stdio transport")

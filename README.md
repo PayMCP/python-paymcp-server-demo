@@ -19,34 +19,55 @@ The price is configured in code via `@price(0.2, "USD")` in `server.py`.
 ## Install & Run
 
 ### Local Development
+
+#### Option 1: Run with Port 8001 (Recommended)
 ```bash
 # Install dependencies
 uv sync
 
-# Run in HTTP mode (default port 8001)
-uv run server.py --http
-# Or with environment variable
-MCP_TRANSPORT=http uv run server.py
+# Use the helper script to run on port 8001
+./run-with-proxy.sh
+# This starts the server internally on 8000 but only exposes port 8001
+# Access at: http://localhost:8001
+```
 
-# Custom port
-UVICORN_PORT=8000 MCP_TRANSPORT=http uv run server.py
+#### Option 2: Run Directly on Port 8000
+```bash
+# Run in HTTP mode (port 8000 - MCP library limitation)
+MCP_TRANSPORT=http uv run server.py
+# Access at: http://localhost:8000
 
 # Run in stdio mode (for Claude Desktop)
 uv run server.py
 ```
+
+#### Option 3: Manual Proxy Setup
+```bash
+# Terminal 1: Start server
+MCP_TRANSPORT=http uv run server.py
+
+# Terminal 2: Start proxy to port 8001
+socat TCP-LISTEN:8001,fork,reuseaddr TCP:127.0.0.1:8000
+# Now accessible at: http://localhost:8001
+```
+
+**Note**: The MCP library currently hardcodes binding to `127.0.0.1:8000`. To use port 8001, we use `socat` as a reverse proxy.
 
 ### Using Docker
 The server is included in the PayMCP test suite Docker setup. See https://github.com/PayMCP/paymcp-test-suite for details.
 
 ### MCP Inspector
 ```bash
-# Run the server in HTTP mode
+# Option 1: With port 8001 proxy (recommended)
+./run-with-proxy.sh
+# Connect Inspector to: http://localhost:8001/mcp
+
+# Option 2: Direct connection
 MCP_TRANSPORT=http uv run server.py
+# Connect Inspector to: http://localhost:8000/mcp
 
 # In another terminal, launch Inspector
 npx @modelcontextprotocol/inspector
-
-# Connect to http://localhost:8001/mcp
 ```
 
 ---
