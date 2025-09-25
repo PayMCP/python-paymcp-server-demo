@@ -649,7 +649,7 @@ wheels = [
 [[package]]
 name = "python-paymcp-server-demo"
 version = "0.0.1"
-source = { virtual = "." }
+source = { editable = "." }
 dependencies = [
     { name = "mcp", extra = ["cli"] },
     { name = "openai" },

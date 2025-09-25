@@ -239,5 +239,4 @@ async def switch_payment_config(provider: str = None, flow: str = None):
     return result
 
 if __name__ == "__main__":
-    # Configure longer timeout for PayPal elicitation flow (default is usually 60-120 seconds)
-    mcp.run(transport="streamable-http", timeout=600)  # 10 minutes
+    mcp.run(transport="streamable-http")
