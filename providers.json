@@ -1,12 +1,19 @@
 {
-  "activeProvider": "paypal",
+  "activeProvider": "mock",
   "activeFlow": "elicitation",
   "availableFlows": [
     "elicitation",
     "two_step",
-    "progress"
+    "progress",
+    "list_change"
   ],
   "availableProviders": {
+    "mock": {
+      "api_key": "mock",
+      "default_status": "paid",
+      "auto_confirm": false,
+      "confirm_delay": 0
+    },
     "walleot": {
       "api_key": "${WALLEOT_API_KEY}"
     },
