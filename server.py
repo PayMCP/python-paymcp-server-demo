@@ -1,21 +1,16 @@
 # server.py
-from mcp.server.fastmcp import FastMCP, Image, Context
+from mcp.server.fastmcp import FastMCP, Context
 from paymcp import PayMCP, PaymentFlow, price
-from openai_client import generate_image
-# Session fix no longer needed - PayMCP now handles FastMCP context properly
-import base64
-from io import BytesIO
 import os
 import logging
 import json
 import sys
 import platform
-from datetime import datetime
-from PIL import Image as PILImage
-
+import hashlib
+import random
+from typing import Dict, Any, Optional
 
 logging.basicConfig(level=logging.INFO)
-
 logger = logging.getLogger(__name__)
 
 env = os.getenv("ENV", "development")
@@ -26,15 +21,15 @@ if env == "development":
 def load_providers_config():
     """Load providers configuration from providers.json"""
     providers = {}
-    active_provider = 'walleot'
-    active_flow = 'two_step'
+    active_provider = None
+    active_flow = None
 
     try:
         with open('providers.json', 'r') as f:
             config = json.load(f)
 
-        active_provider = config.get('activeProvider', 'walleot')
-        active_flow = config.get('activeFlow', 'two_step')
+        active_provider = config.get('activeProvider')
+        active_flow = config.get('activeFlow')
 
         for provider_name, provider_config in config.get('availableProviders', {}).items():
             processed_config = {}
@@ -56,17 +51,18 @@ def load_providers_config():
         logger.info(f"✅ Active flow: {active_flow}")
 
     except FileNotFoundError:
-        logger.warning("⚠️ providers.json not found, using defaults")
-        # Fallback to Walleot if no config file
-        walleot_key = os.getenv("WALLEOT_API_KEY")
-        if walleot_key:
-            providers = {"walleot": {"apiKey": walleot_key}}
+        logger.error("❌ providers.json not found - payment providers disabled")
+        return {}, None, None
     except Exception as e:
         logger.error(f"Error loading providers.json: {e}")
 
     return providers, active_provider, active_flow
 
-mcp = FastMCP("Image generator")
+
+# Create FastMCP instance
+# Check for FASTMCP_HOST env var (needed for Docker: 0.0.0.0 instead of 127.0.0.1)
+fastmcp_host = os.getenv("FASTMCP_HOST", "127.0.0.1")
+mcp = FastMCP("Python Server Demo with PayMCP", host=fastmcp_host)
 
 # Load configuration
 all_providers, active_provider, active_flow_str = load_providers_config()
@@ -81,63 +77,31 @@ else:
 
 # Map flow string to enum
 flow_map = {
-    'elicitation': PaymentFlow.ELICITATION,
+    'elicitation': PaymentFlow.ELICITATION,  # Non-blocking workaround for MCP limitation
     'two_step': PaymentFlow.TWO_STEP,
-    'progress': PaymentFlow.PROGRESS
+    'progress': PaymentFlow.PROGRESS,
+    'list_change': PaymentFlow.LIST_CHANGE  # Dynamic tool list management
 }
 payment_flow = flow_map.get(active_flow_str, PaymentFlow.TWO_STEP)
 
-# Initialize PayMCP with configured providers and custom session extractor
+# Initialize PayMCP with configured providers
+paymcp_instance = None
 if providers:
-    PayMCP(mcp, providers=providers, payment_flow=payment_flow)
+    paymcp_instance = PayMCP(mcp, providers=providers, payment_flow=payment_flow)
     logger.info("✅ PayMCP initialized successfully")
 else:
     logger.warning("⚠️ No payment providers configured") 
 
-@mcp.tool()
-@price(0.2, "USD")
-async def generate(prompt: str, ctx: Context): #important to have ctx:Context here!
-    """Generates high quality image and returns it as MCP resource"""
-    logger.info(f"[generate] Called with prompt={prompt}")
-    b64 = await generate_image(prompt)
-
-    if not b64:
-        raise ValueError("⚠️ generate_image returned empty base64")
-
-    # Decode base64 and resize locally (no HTTP fetch required)
-    raw = base64.b64decode(b64)
-    img = PILImage.open(BytesIO(raw))
-    img.thumbnail((100, 100))
-
-    buffer = BytesIO()
-    img.save(buffer, format="PNG")
-    buffer.seek(0)
-
-    logger.info("[generate] Returning image from local base64 resize")
-    return Image(data=buffer.getvalue(), format="png")
 
 @mcp.tool()
 @price(0.01, "USD")
 async def generate_mock(topic: str, ctx: Context):
-    """Generates a random joke about the given topic (mock tool for testing)"""
-    import random
+    """Generates a static joke about the given topic"""
 
     logger.info(f"[generate_mock] Called with topic={topic}")
 
-    jokes = [
-        f"Why did the {topic} go to therapy? Because it had too many issues!",
-        f"What do you call a {topic} that tells jokes? A stand-up {topic}!",
-        f"How does a {topic} get to work? By {topic}-pooling!",
-        f"Why don't {topic}s ever get lonely? They always come in pairs!",
-        f"What's a {topic}'s favorite music? Heavy {topic}!",
-        f"Why was the {topic} bad at hide and seek? Because it was always spotted!",
-        f"What do you call a {topic} with a PhD? Dr. {topic}!",
-        f"Why did the {topic} cross the road? To debug the other side!",
-        f"How do you organize a {topic} party? You planet!",
-        f"What's a {topic}'s favorite exercise? {topic}-ups!"
-    ]
-
-    joke = random.choice(jokes)
+    # Return static joke for predictable testing
+    joke = f"Why did the {topic} cross the road? To get to the other side!"
     logger.info(f"[generate_mock] Returning joke: {joke}")
 
     return {
@@ -146,97 +110,37 @@ async def generate_mock(topic: str, ctx: Context):
         "disclaimer": "This is a mock response for testing PayMCP payments"
     }
 
-@mcp.tool()
-async def switch_payment_config(provider: str = None, flow: str = None):
-    """Switch payment provider and/or flow at runtime.
+@mcp.tool(description="Get current payment configuration (provider and flow)")
+async def get_config(ctx: Context) -> dict:
+    """Get the current payment provider and flow configuration."""
 
-    ⚠️ WARNING: Switching providers will invalidate any active payment sessions!
-    Any pending payments with the previous provider will be lost.
+    # Read current config from providers.json
+    try:
+        with open('providers.json', 'r') as f:
+            config = json.load(f)
 
-    Provider options: walleot, paypal, stripe, square
-    Flow options: elicitation, two_step, progress"""
+        current_provider = config.get('activeProvider', 'unknown')
+        current_flow = config.get('activeFlow', 'unknown')
+        available_providers = list(config.get('availableProviders', {}).keys())
+        available_flows = config.get('availableFlows', [])
 
-    global providers, active_provider, payment_flow
+        return {
+            "current_provider": current_provider,
+            "current_flow": current_flow,
+            "available_providers": available_providers,
+            "available_flows": available_flows,
+            "server_id": f"demo_server_{platform.node()}",
+            "status": "active",
+            "note": "To change provider/flow, edit providers.json and restart server"
+        }
 
-    result = {"status": "success", "changes": [], "warnings": []}
-
-    # Switch provider if specified
-    if provider:
-        if provider in all_providers:
-            # Add warning about payment session invalidation
-            if provider != active_provider:
-                result["warnings"].append(
-                    f"⚠️ IMPORTANT: Switching from {active_provider} to {provider} will invalidate "
-                    f"any active payment sessions with {active_provider}. Any pending payments will be lost!"
-                )
-                logger.warning(f"⚠️ Provider switch: {active_provider} → {provider} - Payment sessions invalidated")
-
-            active_provider = provider
-            providers = {provider: all_providers[provider]}
-
-            # Re-initialize PayMCP with new provider
-            PayMCP(mcp, providers=providers, payment_flow=payment_flow)
-
-            result["changes"].append(f"Switched to provider: {provider}")
-            logger.info(f"💰 Switched to {provider} for payments")
-
-            # Update providers.json
-            try:
-                with open('providers.json', 'r') as f:
-                    config = json.load(f)
-                config['activeProvider'] = provider
-                with open('providers.json', 'w') as f:
-                    json.dump(config, f, indent=2)
-                result["changes"].append(f"Updated providers.json with activeProvider: {provider}")
-            except Exception as e:
-                logger.error(f"Failed to update providers.json: {e}")
-                result["warnings"] = [f"Could not update providers.json: {str(e)}"]
-        else:
-            return {
-                "status": "error",
-                "message": f"Provider '{provider}' not available. Options: {', '.join(all_providers.keys())}"
-            }
-
-    # Switch flow if specified
-    if flow:
-        if flow in flow_map:
-            payment_flow = flow_map[flow]
-
-            # Re-initialize PayMCP with new flow
-            if providers:
-                PayMCP(mcp, providers=providers, payment_flow=payment_flow)
-
-            result["changes"].append(f"Switched to flow: {flow}")
-            logger.info(f"✅ Switched to payment flow: {flow}")
-
-            # Update providers.json
-            try:
-                with open('providers.json', 'r') as f:
-                    config = json.load(f)
-                config['activeFlow'] = flow
-                with open('providers.json', 'w') as f:
-                    json.dump(config, f, indent=2)
-                result["changes"].append(f"Updated providers.json with activeFlow: {flow}")
-            except Exception as e:
-                logger.error(f"Failed to update providers.json: {e}")
-                if "warnings" not in result:
-                    result["warnings"] = []
-                result["warnings"].append(f"Could not update providers.json: {str(e)}")
-        else:
-            return {
-                "status": "error",
-                "message": f"Flow '{flow}' not available. Options: {', '.join(flow_map.keys())}"
-            }
-
-    # Return current configuration
-    result["current_config"] = {
-        "provider": active_provider,
-        "flow": next((k for k, v in flow_map.items() if v == payment_flow), "UNKNOWN"),
-        "available_providers": list(all_providers.keys()),
-        "available_flows": list(flow_map.keys())
-    }
-
-    return result
+    except Exception as e:
+        return {
+            "error": str(e),
+            "status": "error"
+        }
 
 if __name__ == "__main__":
+    # CRITICAL: Always use streamable-http transport to prevent API key exposure via STDIO
+    # The MCP SDK's streamable HTTP automatically supports mcp-session-id header
     mcp.run(transport="streamable-http")
