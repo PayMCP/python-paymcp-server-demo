@@ -130,7 +130,7 @@ Edit `providers.json` to configure providers and select active settings:
     "elicitation",
     "two_step",
     "progress",
-    "list_change"
+    "dynamic_tools"
   ],
   "availableProviders": {
     "mock": {
@@ -226,12 +226,12 @@ The demo server provides these MCP tools:
 - **User experience**: Real-time progress notifications until payment confirmed
 - **Set in `providers.json`**: `"activeFlow": "progress"`
 
-### 4. List-Change
+### 4. Dynamic Tools
 - **Best for**: Dynamic tool visibility control
 - **How it works**: Hides original tool, shows confirmation tool after payment initiation
 - **User experience**: Tool list updates dynamically per session
 - **Requirement**: Requires session context for per-user isolation
-- **Set in `providers.json`**: `"activeFlow": "list_change"`
+- **Set in `providers.json`**: `"activeFlow": "dynamic_tools"`
 
 **To switch flows**: Edit `activeFlow` in `providers.json` and restart, or use `switch_payment_config()` tool.
 

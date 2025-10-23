@@ -80,7 +80,7 @@ flow_map = {
     'elicitation': PaymentFlow.ELICITATION,  # Non-blocking workaround for MCP limitation
     'two_step': PaymentFlow.TWO_STEP,
     'progress': PaymentFlow.PROGRESS,
-    'list_change': PaymentFlow.LIST_CHANGE  # Dynamic tool list management
+    'dynamic_tools': PaymentFlow.DYNAMIC_TOOLS  # Dynamic tool visibility control
 }
 payment_flow = flow_map.get(active_flow_str, PaymentFlow.TWO_STEP)
 
