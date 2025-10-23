@@ -5,7 +5,7 @@
     "elicitation",
     "two_step",
     "progress",
-    "list_change"
+    "dynamic_tools"
   ],
   "availableProviders": {
     "mock": {
