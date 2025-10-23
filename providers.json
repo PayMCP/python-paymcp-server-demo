@@ -1,0 +1,36 @@
+{
+  "activeProvider": "mock",
+  "activeFlow": "elicitation",
+  "availableFlows": [
+    "elicitation",
+    "two_step",
+    "progress",
+    "dynamic_tools"
+  ],
+  "availableProviders": {
+    "mock": {
+      "api_key": "mock",
+      "default_status": "paid",
+      "auto_confirm": false,
+      "confirm_delay": 0
+    },
+    "walleot": {
+      "api_key": "${WALLEOT_API_KEY}"
+    },
+    "paypal": {
+      "client_id": "${PAYPAL_CLIENT_ID}",
+      "client_secret": "${PAYPAL_CLIENT_SECRET}",
+      "sandbox": true,
+      "success_url": "https://example.com/success",
+      "cancel_url": "https://example.com/cancel"
+    },
+    "stripe": {
+      "api_key": "${STRIPE_SECRET_KEY}"
+    },
+    "square": {
+      "access_token": "${SQUARE_ACCESS_TOKEN}",
+      "location_id": "${SQUARE_LOCATION_ID}",
+      "sandbox": true
+    }
+  }
+}
