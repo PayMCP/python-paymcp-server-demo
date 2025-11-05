@@ -371,15 +371,15 @@ wheels = [
 
 [[package]]
 name = "paymcp"
-version = "0.0.4"
+version = "0.4.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "pydantic" },
     { name = "requests" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/0a/f3/270376d015c3d836a673d71ab46215f4603e0806753918ffea03d1a7a056/paymcp-0.0.4.tar.gz", hash = "sha256:21c752f778dc5a26cc45dc387041cad345aabd90f28170f08364bbbe8a6285f0", size = 9391, upload-time = "2025-07-17T16:35:05.467Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/04/a4/4c974fffda32391f5b91300a2df35d4995d431e69aaf770e3b1eb449a378/paymcp-0.4.2.tar.gz", hash = "sha256:cd26e7d9cccd47b279f42f973a5a8ef02b608143ad91d316d7cf45560dcca88a", size = 62328, upload-time = "2025-11-05T20:06:11.639Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/8c/4b/9b2adbbd956c32f22222fffc476a799f4a8d6c34b07ab0a658640e726387/paymcp-0.0.4-py3-none-any.whl", hash = "sha256:cfdb8378a731fffe7ae295837d42b9c62eaf236c6001d81f82933a00f85a9c5a", size = 13524, upload-time = "2025-07-17T16:35:04.464Z" },
+    { url = "https://files.pythonhosted.org/packages/34/dc/1e0a282385ec168e402c14354e56ff48596eca5bb739a7fdcff2ae3538a6/paymcp-0.4.2-py3-none-any.whl", hash = "sha256:7b8717426f0e528fcf0370d588f9da9523fdf42e1cbc9134597d4e28b796fa09", size = 34708, upload-time = "2025-11-05T20:06:10.654Z" },
 ]
 
 [[package]]
@@ -644,7 +644,7 @@ dependencies = [
 requires-dist = [
     { name = "mcp", extras = ["cli"], specifier = ">=1.11.0" },
     { name = "openai", specifier = ">=1.97.1" },
-    { name = "paymcp", specifier = ">=0.0.4" },
+    { name = "paymcp", specifier = ">=0.4.2" },
     { name = "pillow", specifier = ">=11.2.1" },
     { name = "python-dotenv", specifier = ">=1.1.0" },
     { name = "requests", specifier = ">=2.32.4" },

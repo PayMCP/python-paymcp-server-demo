@@ -1,6 +1,6 @@
 # server.py
 from mcp.server.fastmcp import FastMCP, Image, Context
-from paymcp import PayMCP, PaymentFlow, price
+from paymcp import PayMCP, Mode, price
 from openai_client import generate_image
 import base64
 from io import BytesIO
@@ -23,7 +23,7 @@ if env == "development":
 mcp = FastMCP("Image generator") 
 
 
-PayMCP(mcp, providers={"walleot": {"apiKey": os.getenv("WALLEOT_API_KEY")}}, payment_flow=PaymentFlow.TWO_STEP) 
+PayMCP(mcp, providers={"walleot": {"apiKey": os.getenv("WALLEOT_API_KEY")}}, mode=Mode.TWO_STEP) 
 
 @mcp.tool()
 @price(0.2, "USD")

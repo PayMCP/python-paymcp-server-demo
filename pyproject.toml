@@ -9,6 +9,6 @@ dependencies = [
     "pillow>=11.2.1",
     "python-dotenv>=1.1.0",
     "requests>=2.32.4",
-    "paymcp>=0.0.4",
+    "paymcp>=0.4.2",
     "openai>=1.97.1",
 ]

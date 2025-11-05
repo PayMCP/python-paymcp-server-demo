@@ -23,6 +23,7 @@ The price is configured in code via `@price(0.2, "USD")` in `server.py`.
 uv run mcp dev server.py
 ```
 This starts the server and launches **MCP Inspector** automatically; connect and call the `generate` tool with a `prompt`.
+> **⚠️ Warning:** This mode is intended **only for development**. 
 
 ### HTTP mode
 ```bash
@@ -35,7 +36,7 @@ To install for MCP clients (e.g., Claude Desktop):
 uv run mcp install server.py \
   --with openai --with paymcp --with requests --with Pillow
 ```
-
+> **⚠️ Security Note:** Installation via this command is **only for local development/testing**. Do not distribute or deploy a production server with exposed keys — ensure environment variables and API credentials remain secure.
 ---
 
 ## Configuration
