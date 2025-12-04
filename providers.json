@@ -5,7 +5,8 @@
     "elicitation",
     "two_step",
     "progress",
-    "dynamic_tools"
+    "dynamic_tools",
+    "resubmit"
   ],
   "availableProviders": {
     "mock": {

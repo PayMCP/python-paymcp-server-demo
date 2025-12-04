@@ -80,7 +80,8 @@ flow_map = {
     'elicitation': PaymentFlow.ELICITATION,  # Non-blocking workaround for MCP limitation
     'two_step': PaymentFlow.TWO_STEP,
     'progress': PaymentFlow.PROGRESS,
-    'dynamic_tools': PaymentFlow.DYNAMIC_TOOLS  # Dynamic tool visibility control
+    'dynamic_tools': PaymentFlow.DYNAMIC_TOOLS,  # Dynamic tool visibility control
+    'resubmit': PaymentFlow.RESUBMIT  # Resubmit flow with payment_id parameter
 }
 payment_flow = flow_map.get(active_flow_str, PaymentFlow.TWO_STEP)
 
